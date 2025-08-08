@@ -8,18 +8,18 @@ import {
   submitBatch,
 } from "../lib/judge0.lib.js";
 
-const executeCode = asyncHandler(async (req, res) => {
+const submitCode = asyncHandler(async (req, res) => {
   const { source_code, stdin, expected_output, language_id, problemId } =
     req.body;
 
   const userId = req.user.id;
-  const submissions = stdin.map((input) => ({
+  const submission = stdin.map((input) => ({
     source_code,
     language_id,
     stdin: input,
   }));
 
-  const tokens = await submitBatch(submissions);
+  const tokens = await submitBatch(submission);
   const results = await pollBatchResult(tokens);
 
   let IsPassedAllTestcases = true;
@@ -107,12 +107,16 @@ const executeCode = asyncHandler(async (req, res) => {
   });
   console.log(detailedResult);
 
-  //    res.status(200).JSON(new ApiResponse(200, submissionWithTestcases, "Code executed successfully"))
   return res
     .status(200)
     .json(
       new ApiResponse(200, submissionWithTestcases, "Code run successfully"),
     );
 });
+const executeCode = asyncHandler(async (req, res) => {
+  const { source_code, stdin, expected_output, language_id, problemId } =
+    req.body;
 
-export { executeCode };
+  const userId = req.user.id;
+});
+export { submitCode, executeCode };

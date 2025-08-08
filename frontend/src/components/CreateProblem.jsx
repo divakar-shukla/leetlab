@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { SUPPORT_LANGUAGE } from "../utills/constants";
-import Editer from "@monaco-editor/react";
+import Editor from "@monaco-editor/react";
 import problemService from "@/lib/problemService";
 import toast from "react-hot-toast";
 
@@ -851,7 +851,7 @@ const CreateProblem = () => {
                     name={`codeSnippets.${language}`}
                     control={control}
                     render={({ field }) => (
-                      <Editer
+                      <Editor
                         height="300px"
                         language={language.toLowerCase()}
                         theme="vs-dark"
@@ -885,7 +885,7 @@ const CreateProblem = () => {
                     name={`referenceSolutions.${language}`}
                     control={control}
                     render={({ field }) => (
-                      <Editer
+                      <Editor
                         height="300px"
                         language={language.toLowerCase()}
                         theme="vs-dark"

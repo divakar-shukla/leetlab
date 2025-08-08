@@ -37,7 +37,6 @@ const usePlayListStore = create((set) => ({
     try {
       set({ isLoading: true });
       const response = await getAllPlaylistQuery();
-      console.log(response);
       set({ allPlaylists: response.data });
       return true;
     } catch (error) {

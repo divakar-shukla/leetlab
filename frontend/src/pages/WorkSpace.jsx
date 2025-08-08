@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -13,22 +13,37 @@ import {
   Play,
   CircleCheckBig,
   NotebookText,
+  House,
+  Loader,
 } from "lucide-react";
 import Select from "react-select";
-import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
+import useProblemStore from "@/store/useProblemStore";
 import Editor from "@monaco-editor/react";
+import { useParams, Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import Description from "@/components/Description";
+import Editorails from "@/components/Editorails";
+import Hints from "@/components/Hints";
+import { SUPPORT_LANGUAGE } from "@/utills/constants";
 
-const languageOption = [
-  { value: "javascript", label: "Export" },
-  { value: "java", label: "Java" },
-  { value: "python", label: "Python" },
-];
+const languageOption = SUPPORT_LANGUAGE.reduce(
+  (languagess, currentLanguage) => {
+    console.log(languagess);
+    languagess.push({
+      value: currentLanguage,
+      label:
+        currentLanguage[0].toUpperCase() +
+        currentLanguage.slice(1).toLowerCase(),
+    });
+    return languagess;
+  },
+  [],
+);
 const customStyles = {
   control: (base, state) => ({
     ...base,
@@ -90,17 +105,66 @@ const customStyles = {
     color: "#fff",
   }),
 };
+
 export function WorkSpace() {
   const [isActiveProblemNav, setIsActiveProblemNav] = useState("Description");
   const [isActiveResultNav, setIsActiveResultNav] = useState("testcase");
   const [copyIcon, setCopyIcon] = useState("text-[var(--primary)]");
   const [savingIcon, setSavingIcon] = useState("text-[var(--primary)]");
   const [resetIcon, setResetIcon] = useState("text-[var(--primary)]");
+  const problem = useProblemStore((state) => state.problem);
+  const getingProblem = useProblemStore((state) => state.getingProblem); // fixed name
+  const getProblemById = useProblemStore((state) => state.getProblemById); // added line
+  const [starterCode, setStarterCode] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("JAVASCRIPT");
+
+  const { id } = useParams();
+  useEffect(() => {
+    getProblemById(id);
+  }, [id]);
+
+  useEffect(() => {
+    if (problem) {
+      setStarterCode(problem.codeSnippets[selectedLanguage]);
+    }
+  }, [problem]);
+
+  const resetStarterCode = () => {
+    setStarterCode(problem.codeSnippets[selectedLanguage]);
+  };
+
+  if (getingProblem) {
+    return (
+      <div className="flex items-center justify-center h-screen w-full">
+        <Loader className="size-10 animate-spin" />
+      </div>
+    );
+  }
+  if (!problem) {
+    return (
+      <div className="flex items-center justify-center h-screen w-full">
+        Problem not found
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 mt-25 w-full">
+    <div className="p-4  w-full">
+      {/* {console.log(problem)} */}
       <div className="flex justify-between mb-4 border-b bg-[var(--card)] px-4 py-2 rounded">
-        <div className="flex items-center">
-          <h2 className="text-2xl text-[var(--primary)]">Problem</h2>
+        <div className="flex justify-between items-center  rounded md:flex-row flex-col gap-3">
+          <div className="flex items-center ">
+            <div>
+              <Link to="/">
+                {" "}
+                <House size={25} className="text-[var(--foreground)]" />
+              </Link>
+            </div>
+            <div className="w-0.5 h-7 m-2 bg-[var(--primary)]"></div>
+            <h2 className="md:text-2xl text-lg  text-[var(--foreground)] ">
+              Problem
+            </h2>
+          </div>
         </div>
         <div className="flex gap-5 items-center">
           <div
@@ -108,6 +172,7 @@ export function WorkSpace() {
             onMouseDown={() => setCopyIcon("text-[var(--detail-font-color)]")}
             onMouseUp={() => setCopyIcon("text-[var(--primary)]")}
             onMouseLeave={() => setCopyIcon("text-[var(--primary)]")}
+            onClick={() => navigator.clipboard.writeText(starterCode)}
           >
             <Tooltip>
               <TooltipTrigger asChild>
@@ -138,6 +203,7 @@ export function WorkSpace() {
             onMouseDown={() => setResetIcon("text-[var(--detail-font-color)]")}
             onMouseUp={() => setResetIcon("text-[var(--primary)]")}
             onMouseLeave={() => setResetIcon("text-[var(--primary)]")}
+            onClick={() => resetStarterCode()}
           >
             <Tooltip>
               <TooltipTrigger asChild>
@@ -161,13 +227,17 @@ export function WorkSpace() {
               isSearchable={false}
               name="language"
               options={languageOption}
+              onChange={(selectedOption) => {
+                console.log(selectedLanguage);
+                setSelectedLanguage(selectedOption.value);
+              }}
             />
           </div>
         </div>
       </div>
       <ResizablePanelGroup
         direction="horizontal"
-        className="w-full rounded border md:min-w-[450px]"
+        className="w-full rounded border md:min-w-[80%]"
       >
         <ResizablePanel defaultSize={45}>
           <div className="flex items-start flex-col">
@@ -218,14 +288,61 @@ export function WorkSpace() {
                   setIsActiveProblemNav("Hints");
                 }}
               >
-                Hints
+                Hints & Tags
               </div>
             </div>
             <div
-              className="h-[650px] overflow-y-auto w-full"
+              className="h-[800px] overflow-y-auto w-full"
               style={{ scrollbarWidth: "none" }}
             >
-              <div className="h-[800px] w-full">erfwerfe</div>
+              <div className="h-[900px] w-full px-4">
+                <div className="border-b">
+                  <h3 className="text-xl text-[var(--primary)] pt-4 ">
+                    {problem.title}
+                  </h3>
+                  <div className="flex gap-2 mb-2 mt-2">
+                    <div className="flex justify-between">
+                      <Badge className="bg-[var(--detail-font-color)] ">
+                        {problem.tags[0]}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <Badge className="bg-[var(--detail-font-color)] ">
+                        {problem.tags[1]}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <Badge className="bg-[var(--detail-font-color)] ">
+                        {problem.tags[2]}
+                      </Badge>
+                    </div>
+                    {problem.tags.length > 3 ? (
+                      <div className="flex justify-between">
+                        <Badge className="bg-[var(--detail-font-color)] ">
+                          +{problem.tags.length - 3}
+                        </Badge>
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                  </div>
+                </div>
+                {isActiveProblemNav == "Description" ? (
+                  <Description problem={problem} />
+                ) : (
+                  ""
+                )}
+                {isActiveProblemNav == "Editorials" ? (
+                  <Editorails problem={problem} />
+                ) : (
+                  ""
+                )}
+                {isActiveProblemNav == "Hints" ? (
+                  <Hints problem={problem} />
+                ) : (
+                  ""
+                )}
+              </div>
             </div>
           </div>
         </ResizablePanel>
@@ -253,13 +370,26 @@ export function WorkSpace() {
                   </div>
                 </div>
                 <div
-                  className="h-[500px] overflow-y-auto w-full"
+                  className="min-h-[800px] overflow-y-auto w-full"
                   style={{ scrollbarWidth: "none" }}
                 >
                   <Editor
                     height="100%"
+                    language={"javascript"}
                     theme="vs-dark"
-                    options={{ fontSize: 18, minimap: { enabled: false } }}
+                    value={starterCode || ""}
+                    onChange={(value) => {
+                      setStarterCode(value || "");
+                      console.log(starterCode);
+                    }}
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 14,
+                      lineNumbers: "on",
+                      scrollBeyondLastLine: true,
+                      readOnly: false,
+                      automaticLayout: true,
+                    }}
                   />
                 </div>
               </div>

@@ -52,6 +52,7 @@ const Problem = () => {
   const [SaveProblemId, setSaveProblemId] = useState("");
   const allPlaylists = usePlayListStore((state) => state.allPlaylists);
   const playList = usePlayListStore((state) => state.playList);
+
   const {
     createPlayList,
     getPlayListById,
@@ -96,7 +97,6 @@ const Problem = () => {
   }, [problems, searchFilter, difficultyFilter, tagFilter]);
 
   const deleteProblem = async (id) => {
-    console.log(id);
     try {
       setDeletingProblem(true);
       const response = await deleteProblemQuery(id);
@@ -118,7 +118,13 @@ const Problem = () => {
   };
 
   const saveProblem = async () => {
+    console.log(saveInPlayList);
+    if (!saveInPlayList) {
+      toast.error("Select Your Playlist");
+      return false;
+    }
     await addProblemInPlayList(SaveProblemId, saveInPlayList);
+    setSaveInPlayList("");
   };
 
   if (savingProblem || isLoading) {
@@ -380,18 +386,15 @@ const Problem = () => {
                                             <select
                                               className="w-full focus:outline-0 text-[var(--background)] placeholder:text-[var(--primary)] py-2 px-4"
                                               value={saveInPlayList}
-                                              onChange={(e) => {
+                                              onChange={(e) =>
                                                 setSaveInPlayList(
                                                   e.target.value,
-                                                );
-                                                console.log(
-                                                  saveInPlayList,
-                                                  "--",
-                                                  SaveProblemId,
-                                                );
-                                              }}
+                                                )
+                                              }
                                             >
-                                              <option> Select Playlist</option>
+                                              <option value={""}>
+                                                Select Playlist
+                                              </option>
                                               {allPlaylists.map((p) => (
                                                 <option key={p.id} value={p.id}>
                                                   {p.name}
@@ -405,8 +408,15 @@ const Problem = () => {
                                     <DialogFooter>
                                       <DialogClose asChild>
                                         <button
-                                          className="bg-[var(--primary)] text-[var(--background)] py-2 px-3 text-sm rounded flex items-center cursor-pointer"
+                                          className={` ${
+                                            saveInPlayList
+                                              ? "bg-[var(--primary)]"
+                                              : "bg-[var(--detail-font-color)]"
+                                          } text-[var(--background)] py-2 px-3 text-sm rounded flex items-center cursor-pointer`}
                                           onClick={saveProblem}
+                                          disabled={
+                                            saveInPlayList ? false : true
+                                          }
                                         >
                                           Save
                                         </button>

@@ -58,11 +58,11 @@ function App() {
             path="problem"
             element={authUser ? <Problem /> : <Navigate to={"/login"} />}
           />
-          <Route
-            path="problem/:id"
-            element={authUser ? <WorkSpace /> : <Navigate to={"/login"} />}
-          />
         </Route>
+        <Route
+          path="problem/:id"
+          element={authUser ? <WorkSpace /> : <Navigate to={"/login"} />}
+        />
 
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="add-problem" element={<AddProblem />} />

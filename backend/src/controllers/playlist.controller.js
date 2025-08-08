@@ -76,9 +76,11 @@ const addProblemToPlaylist = asyncHandler(async (req, res) => {
     where: { id: playlistId },
   });
 
+  
   if (!isExistsPlaylist) {
     throw new ApiError(401, "Playlist not found");
   }
+
   const isExistsProblemInPlaylist = await db.problemInPlaylist.findUnique({
     where: {
       problemId_playListId: {
